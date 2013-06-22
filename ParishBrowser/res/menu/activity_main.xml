@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+   <item android:id="@+id/actionbar_item_refresh"
+         android:title="@string/refresh"     
+         android:icon="@drawable/refresh"
+         android:showAsAction="ifRoom|withText" />
+   <item android:id="@+id/actionbar_item_refreshing"
+         android:title="@string/refreshing"
+         android:showAsAction="ifRoom|withText"
+         android:actionViewClass="android.widget.ProgressBar" />
+</menu>
