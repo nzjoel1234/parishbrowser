@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -59,17 +60,19 @@ public class MainActivity extends Activity implements OnInfoWindowClickListener,
       setContentView(R.layout.activity_main);
       
       SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-      double longitude = (double)prefs.getFloat(PREFERENCE_LONGITUDE, 0);
-      double latitude = (double)prefs.getFloat(PREFERENCE_LATITUDE, 0);
-      float zoom = prefs.getFloat(PREFERENCE_ZOOM, 0);
-      float tilt = prefs.getFloat(PREFERENCE_TILT, 0);
-      float bearing = prefs.getFloat(PREFERENCE_BEARING, 0);
       
-      if (longitude != 0 || latitude != 0 || zoom != 0 || bearing != 0)
+      savedCameraPosition = null;
+      if (prefs.contains(PREFERENCE_LONGITUDE))
       {
+         double longitude = (double)prefs.getFloat(PREFERENCE_LONGITUDE, 0);
+         double latitude = (double)prefs.getFloat(PREFERENCE_LATITUDE, 0);
+         float zoom = prefs.getFloat(PREFERENCE_ZOOM, 0);
+         float tilt = prefs.getFloat(PREFERENCE_TILT, 0);
+         float bearing = prefs.getFloat(PREFERENCE_BEARING, 0);
+
          savedCameraPosition = new CameraPosition(
-               new LatLng(latitude, longitude),
-               zoom, tilt, bearing);
+            new LatLng(latitude, longitude),
+            zoom, tilt, bearing);
       }
 
       setUpMapIfNeeded();
@@ -94,7 +97,7 @@ public class MainActivity extends Activity implements OnInfoWindowClickListener,
       
       super.onPause();
    }
-  
+   
    @Override
    public boolean onCreateOptionsMenu(Menu menu) {
       getMenuInflater().inflate(R.menu.activity_main, menu);
@@ -143,7 +146,18 @@ public class MainActivity extends Activity implements OnInfoWindowClickListener,
       mMap.setMyLocationEnabled(true);
       mMap.setOnInfoWindowClickListener(this);
       
-      MoveCamera(CameraUpdateFactory.newCameraPosition(savedCameraPosition));
+      CameraUpdate update;
+      
+      if (savedCameraPosition != null)
+      {
+         update = CameraUpdateFactory.newCameraPosition(savedCameraPosition);
+      }
+      else
+      {
+         update = CameraUpdateFactory.newLatLng(new LatLng(-43.532247, 172.636401));
+      }
+      
+      MoveCamera(update);
    }
    
    private void MoveCamera(final CameraUpdate update)
@@ -191,6 +205,7 @@ public class MainActivity extends Activity implements OnInfoWindowClickListener,
       
       if (!cursor.moveToFirst())
       {
+         Toast.makeText(this, R.string.noParishesLoaded, Toast.LENGTH_LONG).show();
          return;
       }
       

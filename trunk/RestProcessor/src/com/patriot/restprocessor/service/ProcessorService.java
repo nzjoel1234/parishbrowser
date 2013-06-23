@@ -9,10 +9,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.support.v4.content.LocalBroadcastManager;
-
-import com.patriot.restprocessor.service.IServiceProvider;
 
 /**
  * This service is for making asynchronous method calls on providers.
@@ -108,8 +105,6 @@ public abstract class ProcessorService extends Service
    
    			String taskIdentifier = getTaskIdentifier(extras);
    
-   			Log.i("ProcessorService", "starting " + taskIdentifier);
-   
    			// If a similar task is already running then lets use that task.
    			AsyncServiceTask task = mTasks.get(taskIdentifier);
    
@@ -172,7 +167,6 @@ public abstract class ProcessorService extends Service
 		@Override
 		protected Boolean doInBackground(Void... params)
 		{
-			Log.i("ProcessorService", "working " + mTaskIdentifier);
 			Boolean result = false;
 			final int providerId = mExtras.getInt(Extras.PROVIDER_EXTRA);
 			final int methodId = mExtras.getInt(Extras.METHOD_EXTRA);
@@ -186,7 +180,6 @@ public abstract class ProcessorService extends Service
 					try
 					{
 						result = provider.RunTask(methodId, mExtras);
-			         Log.i("ProcessorService", "finishing" + mTaskIdentifier);
 					} catch (Exception e)
 					{
 						mExtras.putString(Extras.RESULT_ERROR, e.toString());
@@ -201,7 +194,6 @@ public abstract class ProcessorService extends Service
 		@Override
 		protected void onPostExecute(Boolean result)
 		{
-         Log.i("ProcessorService", "finished work " + mTaskIdentifier);
 			// This must be synchronised so that service is not stopped while a new task is being added.
 			synchronized (mTasks)
 			{
