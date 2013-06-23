@@ -1,0 +1,22 @@
+<resources>
+
+    <string name="app_name">Christchurch Parish Browser</string>
+    <string name="title_activity_main">Parish Browser</string>
+    <string name="title_activity_parish">Parish</string>
+    
+    <string name="refresh">Refresh</string>
+    <string name="refreshing">Refreshing</string>
+    
+    <string name="noParishesLoaded">No parishes loaded. Click the Refresh icon to load latest parish information</string>
+    
+    <string name="physicalAddressLabel">Physical Address</string>
+    <string name="postalAddressLabel">Postal Address</string>
+    <string name="phoneLabel">Phone</string>
+    <string name="faxLabel">Fax</string>
+    <string name="saturdayMassesLabel">Saturday Masses</string>
+    <string name="sundayMassesLabel">Sunday Masses</string>
+    <string name="weekdayMassesLabel">Weekday Masses</string>
+    <string name="otherMassesLabel">Other Masses</string>
+    <string name="reconciliationLabel">Reconciliation</string>
+
+</resources>
