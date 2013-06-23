@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.util.Log;
 
 import com.joel.parishbrowser.contentprovider.ParishContentProvider;
 import com.joel.parishbrowser.contentprovider.RefreshStateContentProvider;
@@ -40,8 +39,8 @@ public class ParishLoaderProvider implements IServiceProvider
    }
 
    /**
-    * Identifier for each provided method.
-    * Cannot use 0 as Bundle.getInt(key) returns 0 when the key does not exist.
+    * Identifier for each provided method. Cannot use 0 as Bundle.getInt(key)
+    * returns 0 when the key does not exist.
     */
    public static class Methods
    {
@@ -50,7 +49,7 @@ public class ParishLoaderProvider implements IServiceProvider
 
    public boolean RunTask(int methodId, Bundle extras)
    {
-      switch(methodId)
+      switch (methodId)
       {
       case Methods.LOAD_METHOD:
          return Load();
@@ -58,16 +57,20 @@ public class ParishLoaderProvider implements IServiceProvider
 
       return false;
    }
-   
-   private void SetParishesRefreshState(ContentResolver contentResolver, boolean refreshing)
+
+   private void SetParishesRefreshState(ContentResolver contentResolver,
+         boolean refreshing)
    {
-      Uri parishesRefreshStateUri = ContentUris.withAppendedId(RefreshStateContentProvider.CONTENT_URI, RefreshStateTable.Tables.TABLE_ID_PARISH);
-      
-      int rowState = refreshing ? RefreshStateTable.RowStates.UPDATING : RefreshStateTable.RowStates.STEADY_STATE;
-      
+      Uri parishesRefreshStateUri = ContentUris.withAppendedId(
+            RefreshStateContentProvider.CONTENT_URI,
+            RefreshStateTable.Tables.TABLE_ID_PARISH);
+
+      int rowState = refreshing ? RefreshStateTable.RowStates.UPDATING
+            : RefreshStateTable.RowStates.STEADY_STATE;
+
       ContentValues values = new ContentValues();
       values.put(RefreshStateTable.COLUMN_ROW_STATE, rowState);
-      
+
       contentResolver.update(parishesRefreshStateUri, values, null, null);
    }
 
@@ -83,50 +86,48 @@ public class ParishLoaderProvider implements IServiceProvider
          {
             return false;
          }
-         
+
          List<String> parishUrls = ParishListDecoder.ParseParishList(listPage);
          if (parishUrls == null || parishUrls.size() == 0)
          {
             return false;
          }
-         
-         ArrayList<ContentProviderOperation> operations =
-               new ArrayList<ContentProviderOperation>();
-         
-         operations.add(ContentProviderOperation
-               .newDelete(ParishContentProvider.CONTENT_URI).build());
-         
-         ArrayList<AsyncLoadParishTask> loadParishTasks =
-               new ArrayList<AsyncLoadParishTask>();
-         
+
+         ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
+
+         operations.add(ContentProviderOperation.newDelete(
+               ParishContentProvider.CONTENT_URI).build());
+
+         ArrayList<AsyncLoadParishTask> loadParishTasks = new ArrayList<AsyncLoadParishTask>();
+
          for (String parishUrl : parishUrls)
          {
             AsyncLoadParishTask task = new AsyncLoadParishTask(parishUrl);
             loadParishTasks.add(task);
-   
-            // AsyncTasks are by default only run in serial (depending on the android version)
+
+            // AsyncTasks are by default only run in serial (depending on the
+            // android version)
             // see android documentation for AsyncTask.execute()
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                  (Void[]) null);
          }
-         
+
          do
          {
             AsyncLoadParishTask task = loadParishTasks.get(0);
             try
             {
                ContentProviderOperation operation = task.get();
-               if (operation == null)
-               {
-                  Log.i("Loading parish failed", "from: " + task.getUrl());
-               }
-               else
+               if (operation != null)
                {
                   operations.add(operation);
                }
-            } catch (InterruptedException e)
+            }
+            catch (InterruptedException e)
             {
                e.printStackTrace();
-            } catch (ExecutionException e)
+            }
+            catch (ExecutionException e)
             {
                e.printStackTrace();
             }
@@ -135,10 +136,11 @@ public class ParishLoaderProvider implements IServiceProvider
                loadParishTasks.remove(0);
             }
          } while (!loadParishTasks.isEmpty());
-         
+
          try
          {
-            contentResolver.applyBatch(ParishContentProvider.AUTHORITY, operations);
+            contentResolver.applyBatch(ParishContentProvider.AUTHORITY,
+                  operations);
          } catch (RemoteException e)
          {
             e.printStackTrace();
@@ -156,10 +158,11 @@ public class ParishLoaderProvider implements IServiceProvider
       }
    }
 
-   public class AsyncLoadParishTask extends AsyncTask<Void, Void, ContentProviderOperation>
+   public class AsyncLoadParishTask extends
+         AsyncTask<Void, Void, ContentProviderOperation>
    {
       private final String mUrl;
-      
+
       public String getUrl()
       {
          return mUrl;
@@ -173,14 +176,12 @@ public class ParishLoaderProvider implements IServiceProvider
       @Override
       protected ContentProviderOperation doInBackground(Void... params)
       {
-         Log.i("Loading parish", "from: " + mUrl);
-
          String parishPage = new ParishHtmlRetriever().getParishPage(mUrl);
          if (parishPage == null)
          {
             return null;
          }
-         
+
          Parish parish = ParishListDecoder.ParseParish(mUrl, parishPage);
          if (parish == null)
          {
@@ -191,7 +192,7 @@ public class ParishLoaderProvider implements IServiceProvider
          {
             return null;
          }
-         
+
          Address parishAddress = getAddress(parish.PhysicalAddress);
          if (parishAddress == null)
          {
@@ -200,19 +201,20 @@ public class ParishLoaderProvider implements IServiceProvider
 
          return ContentProviderOperation
                .newInsert(ParishContentProvider.CONTENT_URI)
-               .withValues(new ParishDto(
+                  .withValues(new ParishDto(
                      parish,
                      parishAddress.getLongitude(),
                      parishAddress.getLatitude())
                   .toContentValues())
                .build();
       }
-      
+
       private Address getAddress(String addressString)
       {
          try
          {
-            List<Address> results = mGeocoder.getFromLocationName(addressString, 1);
+            List<Address> results = mGeocoder.getFromLocationName(
+                  addressString, 1);
             if (results.size() == 0)
             {
                return null;

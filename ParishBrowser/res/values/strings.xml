@@ -7,7 +7,7 @@
     <string name="refresh">Refresh</string>
     <string name="refreshing">Refreshing</string>
     
-    <string name="api_key_maps">AIzaSyCQVv89uQXhwIJCuqo0WNV3UEwd_DYhXgo</string>
+    <string name="noParishesLoaded">No parishes loaded. Click the Refresh icon to load latest parish information</string>
     
     <string name="physicalAddressLabel">Physical Address</string>
     <string name="postalAddressLabel">Postal Address</string>

@@ -2,7 +2,6 @@ package com.joel.parishbrowser.database;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
-import android.util.Log;
 
 public class RefreshStateTable
 {
@@ -60,11 +59,6 @@ public class RefreshStateTable
 
    public static void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion)
    {
-      Log.w(ParishTable.class.getName(),
-            "Upgrading " + TABLE_NAME + " table from version "
-                  + oldVersion + " to " + newVersion
-                  + ", which will destroy all old data");
-
       database.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
       onCreate(database);
    }
