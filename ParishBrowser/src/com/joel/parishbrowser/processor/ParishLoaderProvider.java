@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
@@ -93,23 +94,51 @@ public class ParishLoaderProvider implements IServiceProvider
             return false;
          }
 
-         ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
+         final ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
 
          operations.add(ContentProviderOperation.newDelete(
                ParishContentProvider.CONTENT_URI).build());
 
-         ArrayList<AsyncLoadParishTask> loadParishTasks = new ArrayList<AsyncLoadParishTask>();
+         final ArrayList<AsyncLoadParishTask> loadParishTasks = new ArrayList<AsyncLoadParishTask>();
+         final LinkedBlockingQueue<AsyncLoadParishTask> loadParishTaskQueue = new LinkedBlockingQueue<AsyncLoadParishTask>();
 
+         final int maxDownloads = 10;
+         int downloadCount = 0;
          for (String parishUrl : parishUrls)
          {
-            AsyncLoadParishTask task = new AsyncLoadParishTask(parishUrl);
-            loadParishTasks.add(task);
+            AsyncLoadParishTask task = new AsyncLoadParishTask(parishUrl)
+            {
+               @Override
+               protected void onPostExecute(ContentProviderOperation result)
+               {
+                  if (!loadParishTaskQueue.isEmpty())
+                  {
+                     AsyncLoadParishTask task = loadParishTaskQueue.remove();
+                     loadParishTasks.add(task);
+                     runTask(task);
+                  }
 
-            // AsyncTasks are by default only run in serial (depending on the
-            // android version)
-            // see android documentation for AsyncTask.execute()
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-                  (Void[]) null);
+                  if (result != null)
+                  {
+                     operations.add(result);
+                  }
+               }
+            };
+
+            if (downloadCount < maxDownloads)
+            {
+               downloadCount++;
+               loadParishTasks.add(task);
+            }
+            else
+            {
+               loadParishTaskQueue.add(task);
+            }
+         }
+
+         for (AsyncLoadParishTask task : loadParishTasks)
+         {
+            runTask(task);
          }
 
          do
@@ -117,11 +146,7 @@ public class ParishLoaderProvider implements IServiceProvider
             AsyncLoadParishTask task = loadParishTasks.get(0);
             try
             {
-               ContentProviderOperation operation = task.get();
-               if (operation != null)
-               {
-                  operations.add(operation);
-               }
+               task.get();
             }
             catch (InterruptedException e)
             {
@@ -156,6 +181,14 @@ public class ParishLoaderProvider implements IServiceProvider
       {
          SetParishesRefreshState(contentResolver, false);
       }
+   }
+
+   private void runTask(AsyncLoadParishTask task)
+   {
+      // AsyncTasks are by default only run in serial (depending on the
+      // android version)
+      // see android documentation for AsyncTask.execute()
+      task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
    }
 
    public class AsyncLoadParishTask extends
