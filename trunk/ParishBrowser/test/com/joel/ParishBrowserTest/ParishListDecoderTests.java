@@ -30,7 +30,6 @@ public class ParishListDecoderTests
       
       Parish parish = ParishListDecoder.ParseParish("some//url123", rawHtml);
       assertSame(123, parish.Id);
-      assertTrue("Christ the King Parish, Burnside".equals(parish.Name));
       assertTrue("03-358 2611".equals(parish.Phone));
       assertTrue("03-358 4190".equals(parish.Fax));
       assertTrue("6pm".equals(parish.SaturdayMasses));
